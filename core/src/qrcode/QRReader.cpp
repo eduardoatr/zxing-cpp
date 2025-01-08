@@ -76,8 +76,8 @@ Barcodes Reader::decode(const BinaryBitmap& image, int maxSymbols) const
 #ifdef PRINT_DEBUG
 	LogMatrixWriter lmw(log, *binImg, 5, "qr-log.pnm");
 #endif
-	
-	auto allFPs = FindFinderPatterns(*binImg, _opts.tryHarder());
+
+	auto allFPs = FindFinderPatterns(*binImg, _opts.tryHarder(), _opts.minModuleSize());
 
 #ifdef PRINT_DEBUG
 	printf("allFPs: %d\n", Size(allFPs));
@@ -85,7 +85,7 @@ Barcodes Reader::decode(const BinaryBitmap& image, int maxSymbols) const
 
 	std::vector<ConcentricPattern> usedFPs;
 	Barcodes res;
-	
+
 	if (_opts.hasFormat(BarcodeFormat::QRCode)) {
 		auto allFPSets = GenerateFinderPatternSets(allFPs);
 		for (const auto& fpSet : allFPSets) {
@@ -110,7 +110,7 @@ Barcodes Reader::decode(const BinaryBitmap& image, int maxSymbols) const
 			}
 		}
 	}
-	
+
 	if (_opts.hasFormat(BarcodeFormat::MicroQRCode) && !(maxSymbols && Size(res) == maxSymbols)) {
 		for (const auto& fp : allFPs) {
 			if (Contains(usedFPs, fp))
@@ -128,7 +128,7 @@ Barcodes Reader::decode(const BinaryBitmap& image, int maxSymbols) const
 			}
 		}
 	}
-	
+
 	if (_opts.hasFormat(BarcodeFormat::RMQRCode) && !(maxSymbols && Size(res) == maxSymbols)) {
 		// TODO proper
 		for (const auto& fp : allFPs) {

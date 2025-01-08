@@ -39,19 +39,19 @@ namespace ZXing::QRCode {
 constexpr auto PATTERN = FixedPattern<5, 7>{1, 1, 3, 1, 1};
 constexpr bool E2E = true;
 
-PatternView FindPattern(const PatternView& view)
+PatternView FindPattern(const PatternView& view, int minModuleSize)
 {
-	return FindLeftGuard<PATTERN.size()>(view, PATTERN.size(), [](const PatternView& view, int spaceInPixel) {
+	return FindLeftGuard<PATTERN.size()>(view, PATTERN.size(), [minModuleSize](const PatternView& view, int spaceInPixel) {
 		// perform a fast plausability test for 1:1:3:1:1 pattern
 		if (view[2] < 2 * std::max(view[0], view[4]) || view[2] < std::max(view[1], view[3]))
 			return 0.;
-		return IsPattern<E2E>(view, PATTERN, spaceInPixel, 0.1); // the requires 4, here we accept almost 0
+		return IsPattern<E2E>(view, PATTERN, spaceInPixel, 0.1, 0.0, minModuleSize); // the requires 4, here we accept almost 0
 	});
 }
 
-std::vector<ConcentricPattern> FindFinderPatterns(const BitMatrix& image, bool tryHarder)
+std::vector<ConcentricPattern> FindFinderPatterns(const BitMatrix& image, bool tryHarder, int minModuleSize)
 {
-	constexpr int MIN_SKIP         = 3;           // 1 pixel/module times 3 modules/center
+	const int MIN_SKIP             = minModuleSize > 1 ? 3 * minModuleSize : 3; // 1 pixel/module times 3 modules/center
 	constexpr int MAX_MODULES_FAST = 20 * 4 + 17; // support up to version 20 for mobile clients
 
 	// Let's assume that the maximum version QR Code we support takes up 1/4 the height of the
@@ -71,7 +71,7 @@ std::vector<ConcentricPattern> FindFinderPatterns(const BitMatrix& image, bool t
 		GetPatternRow(image, y, row, false);
 		PatternView next = row;
 
-		while (next = FindPattern(next), next.isValid()) {
+		while (next = FindPattern(next, minModuleSize), next.isValid()) {
 			PointF p(next.pixelsInFront() + next[0] + next[1] + next[2] / 2.0, y + 0.5);
 
 			// make sure p is not 'inside' an already found pattern area

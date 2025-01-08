@@ -27,7 +27,7 @@ struct FinderPatternSet
 using FinderPatterns = std::vector<ConcentricPattern>;
 using FinderPatternSets = std::vector<FinderPatternSet>;
 
-FinderPatterns FindFinderPatterns(const BitMatrix& image, bool tryHarder);
+FinderPatterns FindFinderPatterns(const BitMatrix& image, bool tryHarder, int minModuleSize);
 FinderPatternSets GenerateFinderPatternSets(FinderPatterns& patterns);
 
 DetectorResult SampleQR(const BitMatrix& image, const FinderPatternSet& fp);
