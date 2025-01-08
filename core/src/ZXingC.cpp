@@ -279,6 +279,7 @@ ZX_PROPERTY(bool, tryInvert, TryInvert)
 ZX_PROPERTY(bool, tryDownscale, TryDownscale)
 ZX_PROPERTY(bool, isPure, IsPure)
 ZX_PROPERTY(bool, returnErrors, ReturnErrors)
+ZX_PROPERTY(int, minModuleSize, MinModuleSize)
 ZX_PROPERTY(int, minLineCount, MinLineCount)
 ZX_PROPERTY(int, maxNumberOfSymbols, MaxNumberOfSymbols)
 

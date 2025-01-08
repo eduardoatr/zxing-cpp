@@ -170,12 +170,16 @@ using FixedSparcePattern = FixedPattern<N, SUM, true>;
 
 template <bool E2E = false, int LEN, int SUM>
 double IsPattern(const PatternView& view, const FixedPattern<LEN, SUM, false>& pattern, int spaceInPixel = 0,
-				double minQuietZone = 0, double moduleSizeRef = 0)
+				double minQuietZone = 0, double moduleSizeRef = 0, int minModuleSize = 0)
 {
 	if constexpr (E2E) {
 		auto widths = BarAndSpaceSum<LEN, double>(view.data());
 		auto sums = pattern.sums();
 		BarAndSpace<double> modSize = {widths[0] / sums[0], widths[1] / sums[1]};
+
+		const double meanSize = (modSize[0] + modSize[1]) / 2;
+		if (meanSize < minModuleSize)
+			return 0;
 
 		auto [m, M] = std::minmax(modSize[0], modSize[1]);
 		if (M > 4 * m) // make sure module sizes of bars and spaces are not too far away from each other
@@ -190,7 +194,7 @@ double IsPattern(const PatternView& view, const FixedPattern<LEN, SUM, false>& p
 			if (std::abs(view[x] - pattern[x] * modSize[x]) > thr[x])
 				return 0;
 
-		return (modSize[0] + modSize[1]) / 2;
+		return meanSize;
 	}
 
 	double width = view.sum(LEN);
@@ -198,6 +202,8 @@ double IsPattern(const PatternView& view, const FixedPattern<LEN, SUM, false>& p
 		return 0;
 
 	const auto moduleSize = width / SUM;
+	if (moduleSize < minModuleSize)
+		return 0;
 
 	if (minQuietZone && spaceInPixel < minQuietZone * moduleSize - 1)
 		return 0;
@@ -218,7 +224,7 @@ double IsPattern(const PatternView& view, const FixedPattern<LEN, SUM, false>& p
 
 template <bool RELAXED_THRESHOLD = false, int N, int SUM>
 double IsPattern(const PatternView& view, const FixedPattern<N, SUM, true>& pattern, int spaceInPixel = 0,
-				 double minQuietZone = 0, double moduleSizeRef = 0)
+				 double minQuietZone = 0, double moduleSizeRef = 0, int minModuleSize = 0)
 {
 	// pattern contains the indices with the bars/spaces that need to be equally wide
 	double width = 0;
@@ -226,6 +232,8 @@ double IsPattern(const PatternView& view, const FixedPattern<N, SUM, true>& patt
 		width += view[pattern[x]];
 
 	const auto moduleSize = width / SUM;
+	if (moduleSize < minModuleSize)
+		return 0;
 
 	if (minQuietZone && spaceInPixel < minQuietZone * moduleSize - 1)
 		return 0;

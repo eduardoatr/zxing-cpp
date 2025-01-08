@@ -70,6 +70,7 @@ class ReaderOptions
 	uint8_t _minLineCount        = 2;
 	uint8_t _maxNumberOfSymbols  = 0xff;
 	uint16_t _downscaleThreshold = 500;
+	uint16_t _minModuleSize      = 0;
 	BarcodeFormats _formats      = BarcodeFormat::None;
 
 public:
@@ -134,6 +135,9 @@ public:
 	/// Scale factor used during downscaling, meaningful values are 2, 3 and 4
 	// WARNING: this API is experimental and may change/disappear
 	ZX_PROPERTY(uint8_t, downscaleFactor, setDownscaleFactor)
+
+	// The minimum size (in pixels) for valid pattern modules
+	ZX_PROPERTY(uint32_t, minModuleSize, setMinModuleSize)
 
 	/// The number of scan lines in a linear barcode that have to be equal to accept the result, default is 2
 	ZX_PROPERTY(uint8_t, minLineCount, setMinLineCount)
