@@ -40,8 +40,8 @@ std::ostream& operator<<(std::ostream& os, const Position& points) {
 }
 
 auto read_barcodes_impl(py::object _image, const BarcodeFormats& formats, bool try_rotate, bool try_downscale, TextMode text_mode,
-						Binarizer binarizer, bool is_pure, EanAddOnSymbol ean_add_on_symbol, bool return_errors,
-						uint8_t max_number_of_symbols = 0xff)
+						Binarizer binarizer, bool is_pure, EanAddOnSymbol ean_add_on_symbol, uint16_t minimum_module_size,
+						bool return_errors, uint8_t max_number_of_symbols = 0xff)
 {
 	const auto opts = ReaderOptions()
 		.setFormats(formats)
@@ -51,6 +51,7 @@ auto read_barcodes_impl(py::object _image, const BarcodeFormats& formats, bool t
 		.setBinarizer(binarizer)
 		.setIsPure(is_pure)
 		.setMaxNumberOfSymbols(max_number_of_symbols)
+		.setMinModuleSize(minimum_module_size)
 		.setEanAddOnSymbol(ean_add_on_symbol)
 		.setReturnErrors(return_errors);
 	const auto _type = std::string(py::str(py::type::of(_image)));
@@ -147,18 +148,19 @@ auto read_barcodes_impl(py::object _image, const BarcodeFormats& formats, bool t
 
 std::optional<Barcode> read_barcode(py::object _image, const BarcodeFormats& formats, bool try_rotate, bool try_downscale,
 									TextMode text_mode, Binarizer binarizer, bool is_pure, EanAddOnSymbol ean_add_on_symbol,
-									bool return_errors)
+									uint16_t minimum_module_size, bool return_errors)
 {
 	auto res = read_barcodes_impl(_image, formats, try_rotate, try_downscale, text_mode, binarizer, is_pure, ean_add_on_symbol,
-								  return_errors, 1);
+								  minimum_module_size, return_errors, 1);
 	return res.empty() ? std::nullopt : std::optional(res.front());
 }
 
 Barcodes read_barcodes(py::object _image, const BarcodeFormats& formats, bool try_rotate, bool try_downscale, TextMode text_mode,
-					   Binarizer binarizer, bool is_pure, EanAddOnSymbol ean_add_on_symbol, bool return_errors)
+					   Binarizer binarizer, bool is_pure, EanAddOnSymbol ean_add_on_symbol, uint16_t minimum_module_size,
+					   bool return_errors)
 {
 	return read_barcodes_impl(_image, formats, try_rotate, try_downscale, text_mode, binarizer, is_pure, ean_add_on_symbol,
-							  return_errors);
+							  minimum_module_size, return_errors);
 }
 
 #ifdef ZXING_EXPERIMENTAL_API
@@ -385,6 +387,7 @@ PYBIND11_MODULE(zxingcpp, m)
 		py::arg("binarizer") = Binarizer::LocalAverage,
 		py::arg("is_pure") = false,
 		py::arg("ean_add_on_symbol") = EanAddOnSymbol::Ignore,
+		py::arg("minimum_module_size") = 0,
 		py::arg("return_errors") = false,
 		"Read (decode) a barcode from a numpy BGR or grayscale image array or from a PIL image.\n\n"
 		":type image: buffer|numpy.ndarray|PIL.Image.Image\n"
@@ -412,6 +415,8 @@ PYBIND11_MODULE(zxingcpp, m)
 		":type ean_add_on_symbol: zxing.EanAddOnSymbol\n"
 		":param ean_add_on_symbol: Specify whether to Ignore, Read or Require EAN-2/5 add-on symbols while scanning \n"
 		"  EAN/UPC codes. Default is ``Ignore``.\n"
+		":type minimum_module_size: int\n"
+		":param minimum_module_size: Set the minimum size for barcode modules. Default is 0.\n"
 		":type return_errors: bool\n"
 		":param return_errors: Set to True to return the barcodes with errors as well (e.g. checksum errors); see ``Barcode.error``.\n"
 		" Default is False."
@@ -427,6 +432,7 @@ PYBIND11_MODULE(zxingcpp, m)
 		py::arg("binarizer") = Binarizer::LocalAverage,
 		py::arg("is_pure") = false,
 		py::arg("ean_add_on_symbol") = EanAddOnSymbol::Ignore,
+		py::arg("minimum_module_size") = 0,
 		py::arg("return_errors") = false,
 		"Read (decode) multiple barcodes from a numpy BGR or grayscale image array or from a PIL image.\n\n"
 		":type image: buffer|numpy.ndarray|PIL.Image.Image\n"
@@ -454,6 +460,8 @@ PYBIND11_MODULE(zxingcpp, m)
 		":type ean_add_on_symbol: zxing.EanAddOnSymbol\n"
 		":param ean_add_on_symbol: Specify whether to Ignore, Read or Require EAN-2/5 add-on symbols while scanning \n"
 		"  EAN/UPC codes. Default is ``Ignore``.\n"
+		":type minimum_module_size: int\n"
+		":param minimum_module_size: Set the minimum size for barcode modules. Default is 0.\n"
 		":type return_errors: bool\n"
 		":param return_errors: Set to True to return the barcodes with errors as well (e.g. checksum errors); see ``Barcode.error``.\n"
 		" Default is False.\n"
